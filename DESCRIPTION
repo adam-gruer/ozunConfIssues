@@ -1,11 +1,13 @@
 Package: ozunConfIssues
 Title: Analyse a github repo as data
-Description: analyse the data from the ozunconf 2017 github repository.
+Description: Description: What the package does (one paragraph).
 Version: 0.0.0.9000
 Authors@R: person("Adam", "Gruer", email = "adamgruer@icloud.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
 Depends: R (>= 3.4.2)
-License:  MIT + file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests: testthat
+Imports: httr,
+    jsonlite
+RoxygenNote: 6.0.1
