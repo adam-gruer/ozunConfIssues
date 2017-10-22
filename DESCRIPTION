@@ -7,7 +7,10 @@ Depends: R (>= 3.4.2)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Suggests: testthat
+Suggests: testthat,
+    knitr,
+    rmarkdown
 Imports: httr,
     jsonlite
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr

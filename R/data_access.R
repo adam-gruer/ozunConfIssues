@@ -7,7 +7,8 @@
 #' @export
 #'
 #' @examples
-get_api_response <- function(url = "https://api.github.com/repos/ropensci/ozunconf17/issues",
+get_api_response <- function(
+      url = "https://api.github.com/repos/ropensci/ozunconf17/issues",
                     ...) {
   #todo: what happens when more than one page
    httr::GET(url,
@@ -24,7 +25,7 @@ get_api_response <- function(url = "https://api.github.com/repos/ropensci/ozunco
 #' @export
 #'
 #' @examples
-get_json_data <- function(response) {
+get_json_data <- function(response = get_api_response()) {
   httr::content(response, type = "text")
 
 }
@@ -38,8 +39,12 @@ get_json_data <- function(response) {
 #' @export
 #'
 #' @examples
-parse_json <- function(jsondata) {
-  jsonlite::fromJSON(jsondata, flatten = TRUE)
-
-
+parse_json <- function(jsondata = get_json_data()) {
+  jsonlite::fromJSON(jsondata)
 }
+
+
+
+
+
+
