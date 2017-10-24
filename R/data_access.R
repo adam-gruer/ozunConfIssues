@@ -43,3 +43,192 @@ parse_json <- function(jsondata) {
 
 
 }
+
+
+
+
+#' github_pat
+#'
+#' @return
+#' @export
+#'
+#' @examples
+github_pat <- function() {
+  pat <- Sys.getenv('GITHUB_PAT')
+  if (identical(pat, "")) {
+    stop("Please set env var GITHUB_PAT to your github personal access token",
+         call. = FALSE)
+  }
+
+  pat
+}
+
+#' Title
+#'
+#' @param path
+#' @param token
+#'
+#' @return
+#' @export
+#'
+#' @examples
+github_api <- function(path,
+                       token = github_pat(),
+                       user_agent = httr::user_agent("https://github.com/adam-gruer/ozunConfIssues")) {
+
+
+  url <- httr::modify_url("https://api.github.com", path = path)
+  resp <- httr::GET(url,httr::add_headers(Authorization = paste("token",token)), user_agent)
+  if (httr::http_type(resp) != "application/json") {
+    stop("API did not return json", call. = FALSE)
+  }
+
+  parsed <- jsonlite::fromJSON(httr::content(resp, "text"), simplifyVector = FALSE)
+
+  if (httr::http_error(resp)) {
+    stop(
+      sprintf(
+        "GitHub API request failed [%s]\n%s\n<%s>",
+        httr::status_code(resp),
+        parsed$message,
+        parsed$documentation_url
+      ),
+      call. = FALSE
+    )
+  }
+
+
+  structure(
+    list(
+      content = parsed,
+      path = path,
+      response = resp
+    ),
+    class = "github_api"
+  )
+
+
+
+}
+
+
+
+#' print.github_api
+#'
+#' @param x
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+print.github_api <- function(x, ...) {
+  cat("<GitHub ", x$path, ">\n", sep = "")
+  str(x$content)
+  invisible(x)
+}
+
+
+#' github_current_user
+#'
+#' @return
+#' @export
+#'
+#' @examples
+github_current_user <- function(){
+  github_api("user")
+}
+
+
+
+#' next_page
+#'
+#' @param response
+#'
+#' @return
+#' @export
+#'
+#' @examples
+next_page <- function(response){
+  link <- response$response$headers$link
+
+    stringr::str_extract(string = link,
+                         pattern = "(?<=\\?page=)(\\d+)(?=>;\\srel=\\\"next\\\")")
+
+}
+
+
+#' last_page
+#'
+#' @param response
+#'
+#' @return
+#' @export
+#'
+#' @examples
+last_page <- function(response){
+  link <- response$response$headers$link
+
+  stringr::str_extract(string = link,
+                       pattern = "(?<=\\?page=)(\\d+)(?=>;\\srel=\\\"last\\\")")
+
+}
+
+
+#' get_all
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_all <- function(){
+
+  issues <- github_api("repos/ropensci/ozunconf17/issues")
+
+
+    Reduce(function(a, x){
+    Sys.sleep(5)
+    list(a,github_api(paste0(issues$path,"?page=",x)))
+
+  }, seq.int(2,as.integer(last_page(issues))), issues)
+
+
+}
+
+all_content <- function(){
+
+Reduce(function(a,x){
+  c(a,x$content)
+
+}, get_all(), list())
+
+}
+
+
+issues_df <- function() {
+
+issues <-   Reduce(function(a,x) {
+       list(
+           url = c(a$url, x$url),
+           number = c(a$number, x$number),
+           title = c(a$title, x$title),
+           user = c(a$user, x$user$login),
+           body = c(a$body, x$body),
+           comments = c(a$comments, x$comments),
+           comments_url = c(a$comments_url, x$comments_url)
+          )
+      },
+      all_content(),
+      init =  list(url = character(), number = integer(), title = character(),user = character(),
+                            body = character(), comments = integer(), comments_url = character())
+)
+
+
+issues_df <- as.data.frame(issues, stringsAsFactors = FALSE)
+
+}
+
+
+
+
+
