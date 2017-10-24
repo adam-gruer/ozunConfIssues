@@ -258,7 +258,7 @@ issues_df2 <- function(content = pages_df()$content){
     comments = purrr::map_int(content, "comments"),
     created_at = purrr::map_chr(content, "created_at"),
     updated_at = purrr::map_chr(content, "updated_at"),
-   # closed_at = purrr::map_chr(content, "closed_at"),
+    closed_at = purrr::map_chr(content, "closed_at", .null = NA_character_),
     author_association = purrr::map_chr(content, "author_association"),
     body = purrr::map_chr(content, "body")
     )
