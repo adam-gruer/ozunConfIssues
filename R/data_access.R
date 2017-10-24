@@ -224,10 +224,47 @@ issues <-   Reduce(function(a,x) {
                             body = character(), comments = integer(), comments_url = character())
 )
 
-
-issues_df <- as.data.frame(issues, stringsAsFactors = FALSE)
+as.data.frame(issues, stringsAsFactors = FALSE)
 
 }
+
+pages_df <- function(pages = get_all()){
+  tibble::tibble(
+    content = purrr::map(pages,"content"),
+    path =  purrr::map_chr(pages,"path"),
+    response = purrr::map(pages,"response")
+    )
+}
+
+issues_df2 <- function(content = pages_df()$content){
+   content <- Reduce(function(a,x){c(a,x)},content,list())
+   tibble::tibble(
+    url = purrr::map_chr(content ,"url"),
+    repository_url = purrr::map_chr(content, "repository_url"),
+    labels_url = purrr::map_chr(content, "labels_url"),
+    comments_url = purrr::map_chr(content, "comments_url"),
+    events_url = purrr::map_chr(content, "events_url"),
+    html_url = purrr::map_chr(content, "html_url"),
+    id = purrr::map_int(content, "id"),
+    number = purrr::map_int(content, "number"),
+    title = purrr::map_chr(content, "title"),
+    user = purrr::map(content, "user"),
+    labels = purrr::map(content, "labels"),
+    state = purrr::map_chr(content, "state"),
+    locked = purrr::map_lgl(content, "locked"),
+    assignee = purrr::map(content,"assignee"),
+    assignees = purrr::map(content,"assignees"),
+    milestone = purrr::map(content,"milestone"),
+    comments = purrr::map_int(content, "comments"),
+    created_at = purrr::map_chr(content, "created_at"),
+    updated_at = purrr::map_chr(content, "updated_at"),
+   # closed_at = purrr::map_chr(content, "closed_at"),
+    author_association = purrr::map_chr(content, "author_association"),
+    body = purrr::map_chr(content, "body")
+    )
+}
+
+
 
 
 
