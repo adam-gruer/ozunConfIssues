@@ -188,14 +188,17 @@ last_page <- function(response){
 #' @examples get_all()
 get_all <- function(){
 
-  issues <- github_api("repos/ropensci/ozunconf17/issues")
+  responses <- github_api("repos/ropensci/ozunconf17/issues")
 
+  if(length(responses$response$headers$link) != 0 ) {
 
     Reduce(function(a, x){
     Sys.sleep(5)
-    list(a,github_api(paste0(issues$path,"?page=",x)))
+    list(a,github_api(paste0(responses$path,"?page=",x)))
 
-  }, seq.int(2,as.integer(last_page(issues))), issues)
+  }, seq.int(2,as.integer(last_page(responses))), responses)
+
+  } else  responses
 
 
 }
