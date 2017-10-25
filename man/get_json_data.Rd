@@ -4,11 +4,17 @@
 \alias{get_json_data}
 \title{get_json_data}
 \usage{
-get_json_data(response)
+get_json_data(response = get_api_response())
 }
 \arguments{
 \item{response}{}
 }
+\value{
+github api response content converted to a character vector
+}
 \description{
 get_json_data
+}
+\examples{
+get_json_data()
 }

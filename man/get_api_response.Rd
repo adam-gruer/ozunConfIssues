@@ -9,8 +9,16 @@
   ...)
 }
 \arguments{
-\item{...}{}
+\item{url}{the full path to a github api v3 endpoint}
+
+\item{...}{other agruments passed on to methods}
+}
+\value{
+aresponse from the github v3 API
 }
 \description{
 get_api_response
+}
+\examples{
+get_api_response()
 }

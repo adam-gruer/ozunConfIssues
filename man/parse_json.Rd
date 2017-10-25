@@ -4,11 +4,17 @@
 \alias{parse_json}
 \title{parse_json}
 \usage{
-parse_json(jsondata)
+parse_json(jsondata = get_json_data())
 }
 \arguments{
 \item{jsondata}{}
 }
+\value{
+a list of parsed json data
+}
 \description{
 parse_json
+}
+\examples{
+parse_json()
 }

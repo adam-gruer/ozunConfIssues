@@ -1,0 +1,36 @@
+---
+title: "Getting Started"
+author: "Adam Gruer"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+library(ozunConfIssues)
+library(dplyr)
+library(purrr)
+
+issues <- issues_df2()
+issues_simplified <- issues %>%
+  dplyr::mutate(
+    login = user %>% purrr::map_chr("login"),
+    created_at = as.POSIXct(created_at,tz = "GMT",format = "%Y-%m-%dT%T")
+      ) %>%
+  dplyr::select(
+    number,
+    title,
+    login,
+    body,
+    comments,
+    created_at,
+    url
+    
+  )
+issues_simplified
+```
+

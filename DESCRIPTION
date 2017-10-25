@@ -11,6 +11,10 @@ Suggests: testthat,
     knitr,
     rmarkdown
 Imports: httr,
-    jsonlite
+    jsonlite,
+    purrr,
+    dplyr,
+    stringr,
+    utils
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr

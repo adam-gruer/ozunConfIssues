@@ -1,12 +1,12 @@
 #' get_api_response
 #'
-#' @param url
-#' @param ...
+#' @param url the full path to a github api v3 endpoint
+#' @param ... other agruments passed on to methods
 #'
-#' @return
+#' @return aresponse from the github v3 API
 #' @export
 #'
-#' @examples
+#' @examples get_api_response()
 get_api_response <- function(
       url = "https://api.github.com/repos/ropensci/ozunconf17/issues",
                     ...) {
@@ -21,10 +21,10 @@ get_api_response <- function(
 #'
 #' @param response
 #'
-#' @return
+#' @return github api response content converted to a character vector
 #' @export
 #'
-#' @examples
+#' @examples get_json_data()
 get_json_data <- function(response = get_api_response()) {
   httr::content(response, type = "text")
 
@@ -35,10 +35,10 @@ get_json_data <- function(response = get_api_response()) {
 #'
 #' @param jsondata
 #'
-#' @return
+#' @return a list of parsed json data
 #' @export
 #'
-#' @examples
+#' @examples parse_json()
 parse_json <- function(jsondata = get_json_data()) {
   jsonlite::fromJSON(jsondata)
 }
@@ -50,10 +50,10 @@ parse_json <- function(jsondata = get_json_data()) {
 
 #' github_pat
 #'
-#' @return
+#' @return github personal access token from an environment variable labelled GITHUB_PAT
 #' @export
 #'
-#' @examples
+#' @examples github_pat()
 github_pat <- function() {
   pat <- Sys.getenv('GITHUB_PAT')
   if (identical(pat, "")) {
@@ -64,15 +64,19 @@ github_pat <- function() {
   pat
 }
 
-#' Title
+#' github_api
 #'
-#' @param path
-#' @param token
+#' @param path the path to a github API v3 endpoint , excluding the root https://api.github.com
+#' @param token a github personal access token
 #'
-#' @return
+#' @return a list of class github_api containing 3 elements:
+#'         content - parsed json data,
+#'         path - the url of the api endpoint the data was requested from,
+#'         response - the complete response from the request
+#'
 #' @export
 #'
-#' @examples
+#' @examples github_api("/repos/ropensci/ozunconf17/issues")
 github_api <- function(path,
                        token = github_pat(),
                        user_agent = httr::user_agent("https://github.com/adam-gruer/ozunConfIssues")) {
@@ -116,26 +120,26 @@ github_api <- function(path,
 
 #' print.github_api
 #'
-#' @param x
-#' @param ...
+#' @param x a list of class github_api
+#' @param ... other arguments passed on to methods
 #'
-#' @return
+#' @return invisbly returns x
 #' @export
 #'
-#' @examples
+#' @examples print( github_api("repos/ropensci/ozunconf17/issues"))
 print.github_api <- function(x, ...) {
   cat("<GitHub ", x$path, ">\n", sep = "")
-  str(x$content)
+  utils::str(x$content)
   invisible(x)
 }
 
 
 #' github_current_user
 #'
-#' @return
+#' @return a list of class github_api retrieving the github details for the current authenticated user
 #' @export
 #'
-#' @examples
+#' @examples github_current_user()
 github_current_user <- function(){
   github_api("user")
 }
@@ -146,10 +150,10 @@ github_current_user <- function(){
 #'
 #' @param response
 #'
-#' @return
+#' @return page number, a character vector of length 1 if the api response has a link to a next page
 #' @export
 #'
-#' @examples
+#' @examples next_page(github_api("repos/ropensci/ozunconf17/issues"))
 next_page <- function(response){
   link <- response$response$headers$link
 
@@ -163,10 +167,10 @@ next_page <- function(response){
 #'
 #' @param response
 #'
-#' @return
+#' @return page number, a character vector of length 1 if the api response has a link to a last page
 #' @export
 #'
-#' @examples
+#' @examples last_page(github_api("repos/ropensci/ozunconf17/issues"))
 last_page <- function(response){
   link <- response$response$headers$link
 
@@ -178,10 +182,10 @@ last_page <- function(response){
 
 #' get_all
 #'
-#' @return
+#' @return a list of lists of class github_api from paginated calls to a github api
 #' @export
 #'
-#' @examples
+#' @examples get_all()
 get_all <- function(){
 
   issues <- github_api("repos/ropensci/ozunconf17/issues")
@@ -196,6 +200,12 @@ get_all <- function(){
 
 }
 
+#' all_content
+#'
+#' @return a list of the content  from paginated github_api reponses
+#' @export
+#'
+#' @examples all_content()
 all_content <- function(){
 
 Reduce(function(a,x){
@@ -206,6 +216,12 @@ Reduce(function(a,x){
 }
 
 
+#' issues_df
+#'
+#' @return a dat.frame of repo issues
+#' @export
+#'
+#' @examples issues_df()
 issues_df <- function() {
 
 issues <-   Reduce(function(a,x) {
@@ -228,17 +244,35 @@ as.data.frame(issues, stringsAsFactors = FALSE)
 
 }
 
+
+#' pages_df
+#'
+#' @param pages
+#'
+#' @return a tibble of of reposnes from github API
+#' @export
+#'
+#' @examples pages_df()
 pages_df <- function(pages = get_all()){
-  tibble::tibble(
+  dplyr::tibble(
     content = purrr::map(pages,"content"),
     path =  purrr::map_chr(pages,"path"),
     response = purrr::map(pages,"response")
     )
 }
 
+#' issues_df2
+#'
+#' @param content
+#'
+#' @return a tibble of gitgub issues for the specified repo
+#' @export
+#'
+#' @examples issues_df2()
+#' @importFrom dplyr %>%
 issues_df2 <- function(content = pages_df()$content){
    content <- Reduce(function(a,x){c(a,x)},content,list())
-   tibble::tibble(
+    dplyr::tibble(
     url = purrr::map_chr(content ,"url"),
     repository_url = purrr::map_chr(content, "repository_url"),
     labels_url = purrr::map_chr(content, "labels_url"),
@@ -256,9 +290,12 @@ issues_df2 <- function(content = pages_df()$content){
     assignees = purrr::map(content,"assignees"),
     milestone = purrr::map(content,"milestone"),
     comments = purrr::map_int(content, "comments"),
-    created_at = purrr::map_chr(content, "created_at"),
-    updated_at = purrr::map_chr(content, "updated_at"),
-    closed_at = purrr::map_chr(content, "closed_at", .null = NA_character_),
+    created_at = purrr::map_chr(content, "created_at",.null = NA_character_) %>%
+                           as.POSIXct(tz = "GMT",format = "%Y-%m-%dT%T"),
+    updated_at = purrr::map_chr(content, "updated_at",.null = NA_character_) %>%
+                           as.POSIXct(tz = "GMT",format = "%Y-%m-%dT%T"),
+    closed_at = purrr::map_chr(content, "closed_at",.null = NA_character_) %>%
+                           as.POSIXct(tz = "GMT",format = "%Y-%m-%dT%T"),
     author_association = purrr::map_chr(content, "author_association"),
     body = purrr::map_chr(content, "body")
     )
